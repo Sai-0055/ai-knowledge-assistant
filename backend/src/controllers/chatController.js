@@ -5,8 +5,7 @@ const cacheService = require('../services/cacheService');
 // Get chat history
 const getHistory = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const history = await historyService.getChatHistory(userId);
+    const history = await historyService.getChatHistory(req.user.id);
     res.json({ messages: history });
   } catch (error) {
     console.error('History error:', error.message);
@@ -24,7 +23,13 @@ const clearHistory = async (req, res) => {
   }
 };
 
-// Send chat message with caching + streaming + save to DB
+// Get cache stats
+const getCacheStats = async (req, res) => {
+  const stats = await cacheService.getStats();
+  res.json(stats);
+};
+
+// Main chat handler — cache + stream + save
 const chat = async (req, res) => {
   const { message } = req.body;
   const userId = req.user.id;
@@ -41,7 +46,7 @@ const chat = async (req, res) => {
     const cachedReply = await cacheService.getCached(message);
 
     if (cachedReply) {
-      // Cache HIT — return saved response instantly, no OpenAI call
+      // Cache HIT — return instantly, no OpenAI call
       await historyService.saveMessage(userId, 'bot', cachedReply);
       return res.json({
         botReply: cachedReply,
@@ -49,13 +54,10 @@ const chat = async (req, res) => {
       });
     }
 
-    // Cache MISS — call OpenAI with streaming
+    // Cache MISS — stream from OpenAI
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-
-    // Tell frontend this is a fresh response
-    res.write(`data: ${JSON.stringify({ fromCache: false })}\n\n`);
 
     let fullReply = '';
 
@@ -66,7 +68,7 @@ const chat = async (req, res) => {
         res.write(`data: ${JSON.stringify({ text: chunk })}\n\n`);
       },
       async () => {
-        // Save to database and cache when done
+        // When done — save to DB and cache in Redis
         await historyService.saveMessage(userId, 'bot', fullReply);
         await cacheService.setCached(message, fullReply);
         res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
@@ -84,4 +86,4 @@ const chat = async (req, res) => {
   }
 };
 
-module.exports = { chat, getHistory, clearHistory };
+module.exports = { chat, getHistory, clearHistory, getCacheStats };

@@ -18,6 +18,27 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
+// Add auth token to every axios request automatically
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// If any request returns 401 — auto logout
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      window.location.href = '/'
+    }
+    return Promise.reject(error)
+  }
+)
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -25,11 +46,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (token) {
-      axios.get('http://localhost:5000/api/auth/verify', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      axios.get('http://localhost:5000/api/auth/verify')
         .then(res => setUser(res.data.user))
-        .catch(() => localStorage.removeItem('token'))
+        .catch(() => {
+          localStorage.removeItem('token')
+        })
         .finally(() => setLoading(false))
     } else {
       setLoading(false)
@@ -38,12 +59,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (username: string, password: string) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { username, password })
+      const res = await axios.post('http://localhost:5000/api/auth/login', {
+        username,
+        password
+      })
       localStorage.setItem('token', res.data.token)
       setUser(res.data.user)
       return { success: true }
     } catch (err: any) {
-      return { success: false, error: err.response?.data?.error || 'Login failed' }
+      const errorMsg = err.response?.data?.error ||
+                       err.response?.data?.details?.[0] ||
+                       'Login failed'
+      return { success: false, error: errorMsg }
     }
   }
 

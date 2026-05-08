@@ -1,4 +1,5 @@
-import { useState, FormEvent } from 'react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
 import './LoginPage.css'
 
@@ -40,6 +41,7 @@ const LoginPage = () => {
         <p className="login-sub">Sign in to your AI Knowledge Assistant</p>
 
         <form onSubmit={handleSubmit} className="login-form">
+
           <div className="field-group">
             <label className="field-label">Username</label>
             <div className="input-wrap">
@@ -81,8 +83,12 @@ const LoginPage = () => {
                 autoComplete="current-password"
                 required
               />
-              <button type="button" className="show-pass"
-                onClick={() => setShowPass(!showPass)} tabIndex={-1}>
+              <button
+                type="button"
+                className="show-pass"
+                onClick={() => setShowPass(!showPass)}
+                tabIndex={-1}
+              >
                 {showPass ? (
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" strokeWidth="2">
@@ -114,8 +120,11 @@ const LoginPage = () => {
           )}
 
           <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? <span className="spinner" /> : (
-              <>Sign in
+            {loading ? (
+              <span className="spinner" />
+            ) : (
+              <>
+                Sign in
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="2">
                   <line x1="5" y1="12" x2="19" y2="12"/>
@@ -128,9 +137,18 @@ const LoginPage = () => {
 
         <div className="demo-hint">
           <div className="demo-title">Demo credentials</div>
-          <div className="demo-row"><span>admin</span><span className="demo-sep">/</span><span>admin123</span></div>
-          <div className="demo-row"><span>developer</span><span className="demo-sep">/</span><span>dev123</span></div>
+          <div className="demo-row">
+            <span>admin</span>
+            <span className="demo-sep">/</span>
+            <span>admin123</span>
+          </div>
+          <div className="demo-row">
+            <span>developer</span>
+            <span className="demo-sep">/</span>
+            <span>dev123</span>
+          </div>
         </div>
+
       </div>
     </div>
   )

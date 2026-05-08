@@ -1,9 +1,12 @@
 import { useAuth } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
 import ChatPage from './pages/ChatPage'
+import UploadPage from './pages/UploadPage'
+import { useState } from 'react'
 
 function App() {
   const { user, loading } = useAuth()
+  const [currentPage, setCurrentPage] = useState<'chat' | 'upload'>('chat')
 
   if (loading) {
     return (
@@ -21,7 +24,58 @@ function App() {
     )
   }
 
-  return user ? <ChatPage /> : <LoginPage />
+  if (!user) return <LoginPage />
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* Navigation */}
+      <nav style={{
+        background: '#13131f',
+        borderBottom: '1px solid #2a2a3d',
+        padding: '8px 24px',
+        display: 'flex',
+        gap: '8px'
+      }}>
+        <button
+          onClick={() => setCurrentPage('chat')}
+          style={{
+            padding: '6px 16px',
+            borderRadius: '20px',
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            fontSize: '13px',
+            fontWeight: '500',
+            background: currentPage === 'chat' ? '#6366f1' : 'transparent',
+            color: currentPage === 'chat' ? 'white' : '#6b7280',
+            transition: 'all 0.15s'
+          }}
+        >
+          💬 Chat
+        </button>
+        <button
+          onClick={() => setCurrentPage('upload')}
+          style={{
+            padding: '6px 16px',
+            borderRadius: '20px',
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            fontSize: '13px',
+            fontWeight: '500',
+            background: currentPage === 'upload' ? '#6366f1' : 'transparent',
+            color: currentPage === 'upload' ? 'white' : '#6b7280',
+            transition: 'all 0.15s'
+          }}
+        >
+          📄 Upload Docs
+        </button>
+      </nav>
+
+      {/* Pages */}
+      {currentPage === 'chat' ? <ChatPage /> : <UploadPage />}
+    </div>
+  )
 }
 
 export default App
