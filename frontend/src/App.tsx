@@ -1,8 +1,8 @@
+import { useState } from 'react'
 import { useAuth } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
 import ChatPage from './pages/ChatPage'
 import UploadPage from './pages/UploadPage'
-import { useState } from 'react'
 
 function App() {
   const { user, loading } = useAuth()
@@ -28,13 +28,15 @@ function App() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Navigation */}
+
+      {/* Navigation bar */}
       <nav style={{
         background: '#13131f',
         borderBottom: '1px solid #2a2a3d',
         padding: '8px 24px',
         display: 'flex',
-        gap: '8px'
+        gap: '8px',
+        alignItems: 'center'
       }}>
         <button
           onClick={() => setCurrentPage('chat')}
@@ -72,8 +74,9 @@ function App() {
         </button>
       </nav>
 
-      {/* Pages */}
+      {/* Page content */}
       {currentPage === 'chat' ? <ChatPage /> : <UploadPage />}
+
     </div>
   )
 }
