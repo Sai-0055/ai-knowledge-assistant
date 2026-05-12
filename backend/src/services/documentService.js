@@ -11,7 +11,6 @@ const extractText = async (filePath, fileType) => {
 
   if (fileType === 'application/pdf') {
     try {
-      // Try pdf-parse
       const pdfParse = require('pdf-parse');
       const fileBuffer = fs.readFileSync(filePath);
       const pdfData = await pdfParse(fileBuffer);
@@ -30,7 +29,6 @@ const processDocument = async (filePath, fileName, fileType) => {
   try {
     console.log(`Processing document: ${fileName}`);
 
-    // Extract text
     const text = await extractText(filePath, fileType);
 
     if (!text || text.trim().length === 0) {
@@ -39,11 +37,9 @@ const processDocument = async (filePath, fileName, fileType) => {
 
     console.log(`Extracted ${text.length} characters from ${fileName}`);
 
-    // Split into chunks
     const chunks = chunkText(text, 500, 50);
     console.log(`Split into ${chunks.length} chunks`);
 
-    // Generate embeddings and store
     let storedCount = 0;
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
@@ -57,7 +53,6 @@ const processDocument = async (filePath, fileName, fileType) => {
       console.log(`Stored chunk ${i + 1}/${chunks.length}`);
     }
 
-    // Clean up uploaded file
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
@@ -77,7 +72,7 @@ const processDocument = async (filePath, fileName, fileType) => {
 };
 
 // Search for relevant document chunks
-const searchDocuments = async (query, topK = 3) => {
+const searchDocuments = async (query, topK = 5) => {
   const queryEmbedding = await generateEmbedding(query);
   return vectorStore.search(queryEmbedding, topK);
 };
@@ -92,6 +87,23 @@ const getDocumentStats = () => {
   };
 };
 
+// List all unique documents
+const listDocuments = () => {
+  const docs = vectorStore.documents;
+  const unique = {};
+  docs.forEach(doc => {
+    const name = doc.metadata.fileName;
+    if (!unique[name]) {
+      unique[name] = {
+        fileName: name,
+        totalChunks: doc.metadata.totalChunks,
+        uploadedAt: new Date(doc.id).toLocaleDateString()
+      };
+    }
+  });
+  return Object.values(unique);
+};
+
 // Clear all documents
 const clearDocuments = () => {
   vectorStore.clear();
@@ -102,5 +114,6 @@ module.exports = {
   processDocument,
   searchDocuments,
   getDocumentStats,
+  listDocuments,
   clearDocuments
 };

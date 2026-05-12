@@ -9,6 +9,8 @@ interface Message {
   time: string
   isError?: boolean
   isStreaming?: boolean
+  usingRAG?: boolean
+  sources?: string[]
 }
 
 const ChatPage = () => {
@@ -19,9 +21,7 @@ const ChatPage = () => {
   const [historyLoading, setHistoryLoading] = useState(true)
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    loadHistory()
-  }, [])
+  useEffect(() => { loadHistory() }, [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -38,16 +38,14 @@ const ChatPage = () => {
         setMessages(data.messages)
       } else {
         setMessages([{
-          id: 0,
-          role: 'bot',
-          text: `Hi ${user?.name}! I'm your AI Knowledge Assistant. Your chat history is saved automatically. Ask me anything!`,
+          id: 0, role: 'bot',
+          text: `Hi ${user?.name}! I'm your AI Knowledge Assistant. Upload documents and I'll answer questions about them!`,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }])
       }
     } catch {
       setMessages([{
-        id: 0,
-        role: 'bot',
+        id: 0, role: 'bot',
         text: `Hi ${user?.name}! Ask me anything!`,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }])
@@ -64,22 +62,18 @@ const ChatPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       })
       setMessages([{
-        id: 0,
-        role: 'bot',
+        id: 0, role: 'bot',
         text: 'Chat history cleared! Start a fresh conversation.',
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }])
-    } catch {
-      console.error('Could not clear history')
-    }
+    } catch { console.error('Could not clear history') }
   }
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return
 
     const userMessage: Message = {
-      id: Date.now(),
-      role: 'user',
+      id: Date.now(), role: 'user',
       text: input.trim(),
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
@@ -90,9 +84,7 @@ const ChatPage = () => {
 
     const botMessageId = Date.now() + 1
     setMessages(prev => [...prev, {
-      id: botMessageId,
-      role: 'bot',
-      text: '',
+      id: botMessageId, role: 'bot', text: '',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isStreaming: true
     }])
@@ -111,7 +103,6 @@ const ChatPage = () => {
       const contentType = response.headers.get('content-type') || ''
 
       if (contentType.includes('application/json')) {
-        // Cache HIT — instant response
         const data = await response.json()
         setMessages(prev => prev.map(msg =>
           msg.id === botMessageId
@@ -119,7 +110,6 @@ const ChatPage = () => {
             : msg
         ))
       } else {
-        // Cache MISS — streaming response
         const reader = response.body!.getReader()
         const decoder = new TextDecoder()
         let buffer = ''
@@ -136,7 +126,15 @@ const ChatPage = () => {
             if (line.startsWith('data: ')) {
               try {
                 const data = JSON.parse(line.slice(6))
-                if (data.error) {
+
+                if (data.rag && data.sources) {
+                  // RAG sources received
+                  setMessages(prev => prev.map(msg =>
+                    msg.id === botMessageId
+                      ? { ...msg, usingRAG: true, sources: data.sources }
+                      : msg
+                  ))
+                } else if (data.error) {
                   setMessages(prev => prev.map(msg =>
                     msg.id === botMessageId
                       ? { ...msg, text: data.error, isStreaming: false, isError: true }
@@ -161,7 +159,6 @@ const ChatPage = () => {
         }
       }
     } catch (err) {
-      console.error('Send error:', err)
       setMessages(prev => prev.map(msg =>
         msg.id === botMessageId
           ? { ...msg, text: 'Something went wrong. Please try again.', isStreaming: false, isError: true }
@@ -182,7 +179,7 @@ const ChatPage = () => {
   if (historyLoading) {
     return (
       <div style={{
-        minHeight: '100vh', display: 'flex', alignItems: 'center',
+        flex: 1, display: 'flex', alignItems: 'center',
         justifyContent: 'center', background: '#0a0a14'
       }}>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -198,6 +195,7 @@ const ChatPage = () => {
   return (
     <div className="chat-page">
 
+      {/* Header */}
       <header className="chat-header">
         <div className="chat-header-left">
           <div className="logo">
@@ -210,12 +208,12 @@ const ChatPage = () => {
           </div>
           <div>
             <div className="chat-app-name">AI Knowledge Assistant</div>
-            <div className="chat-subtitle">Persistent Chat — Day 5</div>
+            <div className="chat-subtitle">RAG Pipeline — Day 9</div>
           </div>
         </div>
 
         <div className="chat-header-right">
-          <button className="clear-btn" onClick={clearHistory} title="Clear history">
+          <button className="clear-btn" onClick={clearHistory}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2">
               <polyline points="3 6 5 6 21 6"/>
@@ -224,7 +222,6 @@ const ChatPage = () => {
             </svg>
             Clear
           </button>
-
           <div className="user-section">
             <div className="user-avatar">
               {user?.name?.charAt(0).toUpperCase()}
@@ -233,7 +230,7 @@ const ChatPage = () => {
               <span className="user-name">{user?.name}</span>
               <span className="user-role">{user?.role}</span>
             </div>
-            <button className="logout-btn" onClick={logout} title="Sign out">
+            <button className="logout-btn" onClick={logout}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" strokeWidth="2">
                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
@@ -245,6 +242,7 @@ const ChatPage = () => {
         </div>
       </header>
 
+      {/* Messages */}
       <div className="chat-messages">
         {messages.map(msg => (
           <div key={msg.id} className={`message-row ${msg.role}`}>
@@ -259,6 +257,12 @@ const ChatPage = () => {
               </div>
             )}
             <div className="message-bubble-wrap">
+              {/* RAG indicator */}
+              {msg.usingRAG && msg.sources && (
+                <div className="rag-badge">
+                  📄 Answering from: {msg.sources.join(', ')}
+                </div>
+              )}
               <div className={`message-bubble ${msg.role} ${msg.isError ? 'error' : ''}`}>
                 {msg.text}
                 {msg.isStreaming && <span className="cursor" />}
@@ -283,26 +287,23 @@ const ChatPage = () => {
             </div>
           </div>
         )}
-
         <div ref={bottomRef} />
       </div>
 
+      {/* Input */}
       <div className="chat-input-area">
         <div className="chat-input-wrap">
           <textarea
             className="chat-input"
-            placeholder="Ask me anything... (Enter to send)"
+            placeholder="Ask about your documents or anything else..."
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             rows={1}
             disabled={loading}
           />
-          <button
-            className="send-btn"
-            onClick={sendMessage}
-            disabled={!input.trim() || loading}
-          >
+          <button className="send-btn" onClick={sendMessage}
+            disabled={!input.trim() || loading}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2">
               <line x1="22" y1="2" x2="11" y2="13"/>
@@ -310,9 +311,10 @@ const ChatPage = () => {
             </svg>
           </button>
         </div>
-        <div className="chat-hint">Messages are saved automatically</div>
+        <div className="chat-hint">
+          Upload documents to get context-aware answers
+        </div>
       </div>
-
     </div>
   )
 }

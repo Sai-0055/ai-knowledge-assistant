@@ -334,3 +334,15 @@
   color: #ef4444;
   background: rgba(239, 68, 68, 0.05);
 }
+
+/* RAG source indicator */
+.rag-badge {
+  font-size: 11px;
+  color: #6366f1;
+  background: #1e1b4b;
+  border: 1px solid #3730a3;
+  border-radius: 6px;
+  padding: 4px 10px;
+  margin-bottom: 4px;
+  display: inline-block;
+}

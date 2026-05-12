@@ -1,26 +1,46 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import './UploadPage.css'
 
-interface UploadResult {
-  success: boolean
+interface Job {
+  jobId: string
   fileName: string
-  chunksProcessed: number
-  totalDocuments: number
-  message: string
+  status: 'queued' | 'processing' | 'completed' | 'failed'
+  progress: number
+  createdAt: string
+  completedAt: string | null
+  result: any
+  error: string | null
 }
 
 const UploadPage = () => {
   const [dragging, setDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [result, setResult] = useState<UploadResult | null>(null)
+  const [jobs, setJobs] = useState<Job[]>([])
   const [error, setError] = useState('')
-  const [stats, setStats] = useState<any>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const pollingRef = useRef<any>(null)
+
+  useEffect(() => {
+    fetchJobs()
+    // Poll job status every 2 seconds
+    pollingRef.current = setInterval(fetchJobs, 2000)
+    return () => clearInterval(pollingRef.current)
+  }, [])
+
+  const fetchJobs = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('http://localhost:5000/api/documents/jobs', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (data.jobs) setJobs(data.jobs)
+    } catch { }
+  }
 
   const uploadFile = async (file: File) => {
     setUploading(true)
     setError('')
-    setResult(null)
 
     try {
       const token = localStorage.getItem('token')
@@ -38,25 +58,14 @@ const UploadPage = () => {
       if (!res.ok) {
         setError(data.error || 'Upload failed')
       } else {
-        setResult(data)
-        fetchStats()
+        // Job queued — polling will update the status
+        fetchJobs()
       }
     } catch {
       setError('Upload failed. Please try again.')
     } finally {
       setUploading(false)
     }
-  }
-
-  const fetchStats = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const res = await fetch('http://localhost:5000/api/documents/stats', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      const data = await res.json()
-      setStats(data)
-    } catch { }
   }
 
   const handleDrop = (e: React.DragEvent) => {
@@ -71,9 +80,28 @@ const UploadPage = () => {
     if (file) uploadFile(file)
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return '#22c55e'
+      case 'processing': return '#6366f1'
+      case 'failed': return '#ef4444'
+      default: return '#f59e0b'
+    }
+  }
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed': return '✅'
+      case 'processing': return '⚙️'
+      case 'failed': return '❌'
+      default: return '⏳'
+    }
+  }
+
   return (
     <div className="upload-page">
       <div className="upload-container">
+
         <div className="upload-header">
           <div className="upload-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -86,7 +114,7 @@ const UploadPage = () => {
           </div>
           <h1 className="upload-title">Document Upload</h1>
           <p className="upload-subtitle">
-            Upload PDF or text files to make them searchable with AI
+            Documents are processed in the background — upload and continue working!
           </p>
         </div>
 
@@ -109,8 +137,7 @@ const UploadPage = () => {
           {uploading ? (
             <div className="upload-loading">
               <div className="upload-spinner" />
-              <p>Processing document...</p>
-              <p className="upload-hint">Extracting text and generating embeddings</p>
+              <p>Adding to queue...</p>
             </div>
           ) : (
             <div className="upload-prompt">
@@ -128,7 +155,6 @@ const UploadPage = () => {
           )}
         </div>
 
-        {/* Error */}
         {error && (
           <div className="upload-error">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -141,30 +167,47 @@ const UploadPage = () => {
           </div>
         )}
 
-        {/* Success */}
-        {result && (
-          <div className="upload-success">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            <div>
-              <div className="success-title">
-                {result.fileName} uploaded successfully!
-              </div>
-              <div className="success-detail">
-                {result.chunksProcessed} chunks processed •
-                {result.totalDocuments} total chunks in knowledge base
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Jobs Queue */}
+        {jobs.length > 0 && (
+          <div className="jobs-section">
+            <div className="jobs-title">📋 Processing Queue</div>
+            {jobs.map(job => (
+              <div key={job.jobId} className="job-card">
+                <div className="job-header">
+                  <span className="job-icon">{getStatusIcon(job.status)}</span>
+                  <span className="job-name">{job.fileName}</span>
+                  <span className="job-status"
+                    style={{ color: getStatusColor(job.status) }}>
+                    {job.status}
+                  </span>
+                </div>
 
-        {/* Stats */}
-        {stats && (
-          <div className="upload-stats">
-            <div className="stats-icon">📚</div>
-            <div className="stats-text">{stats.message}</div>
+                {/* Progress bar */}
+                {(job.status === 'processing' || job.status === 'queued') && (
+                  <div className="job-progress-bar">
+                    <div
+                      className="job-progress-fill"
+                      style={{ width: `${job.progress}%` }}
+                    />
+                  </div>
+                )}
+
+                {job.status === 'completed' && job.result && (
+                  <div className="job-result">
+                    ✅ {job.result.chunksProcessed} chunks processed and indexed
+                  </div>
+                )}
+
+                {job.status === 'failed' && job.error && (
+                  <div className="job-error">{job.error}</div>
+                )}
+
+                <div className="job-time">
+                  Queued at {new Date(job.createdAt).toLocaleTimeString()}
+                  {job.completedAt && ` • Completed at ${new Date(job.completedAt).toLocaleTimeString()}`}
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -172,17 +215,18 @@ const UploadPage = () => {
         <div className="info-grid">
           <div className="info-card">
             <div className="info-num">1</div>
-            <div className="info-text">Upload your PDF or text document</div>
+            <div className="info-text">Upload your document — get instant response</div>
           </div>
           <div className="info-card">
             <div className="info-num">2</div>
-            <div className="info-text">AI splits it into chunks and generates embeddings</div>
+            <div className="info-text">Background worker processes and indexes it</div>
           </div>
           <div className="info-card">
             <div className="info-num">3</div>
-            <div className="info-text">Ask questions about your document in chat</div>
+            <div className="info-text">Ask questions in chat once completed</div>
           </div>
         </div>
+
       </div>
     </div>
   )

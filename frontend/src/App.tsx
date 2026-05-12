@@ -3,10 +3,13 @@ import { useAuth } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
 import ChatPage from './pages/ChatPage'
 import UploadPage from './pages/UploadPage'
+import SearchPage from './pages/SearchPage'
+
+type Page = 'chat' | 'upload' | 'search'
 
 function App() {
   const { user, loading } = useAuth()
-  const [currentPage, setCurrentPage] = useState<'chat' | 'upload'>('chat')
+  const [currentPage, setCurrentPage] = useState<Page>('chat')
 
   if (loading) {
     return (
@@ -26,56 +29,50 @@ function App() {
 
   if (!user) return <LoginPage />
 
+  const navItems: { id: Page; label: string; icon: string }[] = [
+    { id: 'chat', label: 'Chat', icon: '💬' },
+    { id: 'upload', label: 'Upload Docs', icon: '📄' },
+    { id: 'search', label: 'Search', icon: '🔍' },
+  ]
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
 
-      {/* Navigation bar */}
+      {/* Navigation */}
       <nav style={{
         background: '#13131f',
         borderBottom: '1px solid #2a2a3d',
         padding: '8px 24px',
         display: 'flex',
-        gap: '8px',
+        gap: '6px',
         alignItems: 'center'
       }}>
-        <button
-          onClick={() => setCurrentPage('chat')}
-          style={{
-            padding: '6px 16px',
-            borderRadius: '20px',
-            border: 'none',
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            fontSize: '13px',
-            fontWeight: '500',
-            background: currentPage === 'chat' ? '#6366f1' : 'transparent',
-            color: currentPage === 'chat' ? 'white' : '#6b7280',
-            transition: 'all 0.15s'
-          }}
-        >
-          💬 Chat
-        </button>
-        <button
-          onClick={() => setCurrentPage('upload')}
-          style={{
-            padding: '6px 16px',
-            borderRadius: '20px',
-            border: 'none',
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            fontSize: '13px',
-            fontWeight: '500',
-            background: currentPage === 'upload' ? '#6366f1' : 'transparent',
-            color: currentPage === 'upload' ? 'white' : '#6b7280',
-            transition: 'all 0.15s'
-          }}
-        >
-          📄 Upload Docs
-        </button>
+        {navItems.map(item => (
+          <button
+            key={item.id}
+            onClick={() => setCurrentPage(item.id)}
+            style={{
+              padding: '6px 16px',
+              borderRadius: '20px',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontSize: '13px',
+              fontWeight: '500',
+              background: currentPage === item.id ? '#6366f1' : 'transparent',
+              color: currentPage === item.id ? 'white' : '#6b7280',
+              transition: 'all 0.15s'
+            }}
+          >
+            {item.icon} {item.label}
+          </button>
+        ))}
       </nav>
 
-      {/* Page content */}
-      {currentPage === 'chat' ? <ChatPage /> : <UploadPage />}
+      {/* Pages */}
+      {currentPage === 'chat' && <ChatPage />}
+      {currentPage === 'upload' && <UploadPage />}
+      {currentPage === 'search' && <SearchPage />}
 
     </div>
   )
