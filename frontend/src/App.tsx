@@ -1,11 +1,30 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { useAuth } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
-import ChatPage from './pages/ChatPage'
-import UploadPage from './pages/UploadPage'
-import SearchPage from './pages/SearchPage'
+import HealthIndicator from './components/HealthIndicator'
+
+// Lazy load pages — they only load when user navigates to them
+// This makes the initial page load much faster
+const ChatPage   = lazy(() => import('./pages/ChatPage'))
+const UploadPage = lazy(() => import('./pages/UploadPage'))
+const SearchPage = lazy(() => import('./pages/SearchPage'))
 
 type Page = 'chat' | 'upload' | 'search'
+
+// Loading spinner shown while lazy page loads
+const PageLoader = () => (
+  <div style={{
+    flex: 1, display: 'flex', alignItems: 'center',
+    justifyContent: 'center', background: '#0a0a14'
+  }}>
+    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    <div style={{
+      width: 32, height: 32, border: '3px solid #2a2a4a',
+      borderTopColor: '#6366f1', borderRadius: '50%',
+      animation: 'spin 0.7s linear infinite'
+    }} />
+  </div>
+)
 
 function App() {
   const { user, loading } = useAuth()
@@ -30,9 +49,9 @@ function App() {
   if (!user) return <LoginPage />
 
   const navItems: { id: Page; label: string; icon: string }[] = [
-    { id: 'chat', label: 'Chat', icon: '💬' },
+    { id: 'chat',   label: 'Chat',        icon: '💬' },
     { id: 'upload', label: 'Upload Docs', icon: '📄' },
-    { id: 'search', label: 'Search', icon: '🔍' },
+    { id: 'search', label: 'Search',      icon: '🔍' },
   ]
 
   return (
@@ -67,12 +86,18 @@ function App() {
             {item.icon} {item.label}
           </button>
         ))}
+
+        <div style={{ marginLeft: 'auto' }}>
+          <HealthIndicator />
+        </div>
       </nav>
 
-      {/* Pages */}
-      {currentPage === 'chat' && <ChatPage />}
-      {currentPage === 'upload' && <UploadPage />}
-      {currentPage === 'search' && <SearchPage />}
+      {/* Suspense wraps lazy loaded pages */}
+      <Suspense fallback={<PageLoader />}>
+        {currentPage === 'chat'   && <ChatPage />}
+        {currentPage === 'upload' && <UploadPage />}
+        {currentPage === 'search' && <SearchPage />}
+      </Suspense>
 
     </div>
   )

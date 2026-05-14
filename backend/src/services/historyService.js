@@ -4,8 +4,9 @@ const saveMessage = async (userId, role, content) => {
   return await messageRepository.saveMessage(userId, role, content);
 };
 
-const getChatHistory = async (userId) => {
-  const messages = await messageRepository.getMessagesByUserId(userId);
+const getChatHistory = async (userId, limit = 50) => {
+  // Only fetch last 50 messages — no need to load entire history
+  const messages = await messageRepository.getMessagesByUserId(userId, limit);
   return messages.map(msg => ({
     id: msg.id,
     role: msg.role,

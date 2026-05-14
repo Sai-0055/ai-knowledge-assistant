@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, memo } from 'react'
 import { useAuth } from '../context/AuthContext'
 import './ChatPage.css'
 
@@ -12,6 +12,34 @@ interface Message {
   usingRAG?: boolean
   sources?: string[]
 }
+
+// Memoized message bubble — only re-renders when its own data changes
+const MessageBubble = memo(({ msg }: { msg: Message }) => (
+  <div className={`message-row ${msg.role}`}>
+    {msg.role === 'bot' && (
+      <div className="bot-avatar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+          stroke="white" strokeWidth="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+    )}
+    <div className="message-bubble-wrap">
+      {msg.usingRAG && msg.sources && (
+        <div className="rag-badge">
+          📄 Answering from: {msg.sources.join(', ')}
+        </div>
+      )}
+      <div className={`message-bubble ${msg.role} ${msg.isError ? 'error' : ''}`}>
+        {msg.text}
+        {msg.isStreaming && <span className="cursor" />}
+      </div>
+      <div className="message-time">{msg.time}</div>
+    </div>
+  </div>
+))
 
 const ChatPage = () => {
   const { user, logout } = useAuth()
@@ -126,9 +154,7 @@ const ChatPage = () => {
             if (line.startsWith('data: ')) {
               try {
                 const data = JSON.parse(line.slice(6))
-
                 if (data.rag && data.sources) {
-                  // RAG sources received
                   setMessages(prev => prev.map(msg =>
                     msg.id === botMessageId
                       ? { ...msg, usingRAG: true, sources: data.sources }
@@ -195,7 +221,6 @@ const ChatPage = () => {
   return (
     <div className="chat-page">
 
-      {/* Header */}
       <header className="chat-header">
         <div className="chat-header-left">
           <div className="logo">
@@ -208,7 +233,7 @@ const ChatPage = () => {
           </div>
           <div>
             <div className="chat-app-name">AI Knowledge Assistant</div>
-            <div className="chat-subtitle">RAG Pipeline — Day 9</div>
+            <div className="chat-subtitle">Optimized — Day 13</div>
           </div>
         </div>
 
@@ -242,34 +267,10 @@ const ChatPage = () => {
         </div>
       </header>
 
-      {/* Messages */}
       <div className="chat-messages">
+        {/* Using memoized MessageBubble for performance */}
         {messages.map(msg => (
-          <div key={msg.id} className={`message-row ${msg.role}`}>
-            {msg.role === 'bot' && (
-              <div className="bot-avatar">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                  stroke="white" strokeWidth="2">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                  <path d="M2 17l10 5 10-5"/>
-                  <path d="M2 12l10 5 10-5"/>
-                </svg>
-              </div>
-            )}
-            <div className="message-bubble-wrap">
-              {/* RAG indicator */}
-              {msg.usingRAG && msg.sources && (
-                <div className="rag-badge">
-                  📄 Answering from: {msg.sources.join(', ')}
-                </div>
-              )}
-              <div className={`message-bubble ${msg.role} ${msg.isError ? 'error' : ''}`}>
-                {msg.text}
-                {msg.isStreaming && <span className="cursor" />}
-              </div>
-              <div className="message-time">{msg.time}</div>
-            </div>
-          </div>
+          <MessageBubble key={msg.id} msg={msg} />
         ))}
 
         {loading && messages[messages.length - 1]?.text === '' && (
@@ -290,7 +291,6 @@ const ChatPage = () => {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <div className="chat-input-area">
         <div className="chat-input-wrap">
           <textarea
@@ -315,6 +315,7 @@ const ChatPage = () => {
           Upload documents to get context-aware answers
         </div>
       </div>
+
     </div>
   )
 }
