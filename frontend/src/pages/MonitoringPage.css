@@ -1,0 +1,209 @@
+.monitor-page {
+  flex: 1;
+  background: #0a0a14;
+  padding: 32px 24px;
+  overflow-y: auto;
+}
+
+.monitor-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.monitor-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.monitor-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.monitor-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #e2e2f0;
+  margin-bottom: 4px;
+}
+
+.monitor-subtitle {
+  font-size: 12px;
+  color: #555577;
+}
+
+.refresh-btn {
+  margin-left: auto;
+  background: #1a1a2e;
+  border: 1px solid #2a2a3d;
+  border-radius: 8px;
+  color: #9999cc;
+  font-size: 13px;
+  padding: 7px 16px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.refresh-btn:hover {
+  border-color: #6366f1;
+  color: #e2e2f0;
+}
+
+/* Status grid */
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.status-card {
+  background: #13131f;
+  border: 1px solid #2a2a3d;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.status-label {
+  font-size: 11px;
+  color: #555577;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.status-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e2e2f0;
+}
+
+/* Section title */
+.section-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #9999cc;
+  margin-bottom: 12px;
+  margin-top: 4px;
+}
+
+/* Metrics grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.metric-card {
+  background: #13131f;
+  border: 1px solid #2a2a3d;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+}
+
+.metric-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: #e2e2f0;
+  margin-bottom: 4px;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: #555577;
+  margin-bottom: 4px;
+}
+
+.metric-desc {
+  font-size: 11px;
+  color: #444466;
+  line-height: 1.4;
+}
+
+/* Colors */
+.green { color: #22c55e !important; }
+.red   { color: #ef4444 !important; }
+.amber { color: #f59e0b !important; }
+.purple { color: #818cf8 !important; }
+
+/* Circuit breakers */
+.cb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.cb-card {
+  background: #13131f;
+  border: 1px solid #2a2a3d;
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cb-name {
+  font-size: 13px;
+  color: #e2e2f0;
+  font-weight: 500;
+  flex: 1;
+}
+
+.cb-state {
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.cb-stats {
+  font-size: 12px;
+  color: #555577;
+}
+
+/* Endpoint table */
+.endpoint-table {
+  background: #13131f;
+  border: 1px solid #2a2a3d;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.endpoint-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  padding: 10px 16px;
+  background: #1a1a2e;
+  font-size: 11px;
+  color: #555577;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.endpoint-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #9999cc;
+  border-top: 1px solid #1a1a2e;
+}
+
+.endpoint-name {
+  color: #e2e2f0;
+  font-family: monospace;
+  font-size: 12px;
+}

@@ -3,15 +3,13 @@ import { useAuth } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
 import HealthIndicator from './components/HealthIndicator'
 
-// Lazy load pages — they only load when user navigates to them
-// This makes the initial page load much faster
-const ChatPage   = lazy(() => import('./pages/ChatPage'))
-const UploadPage = lazy(() => import('./pages/UploadPage'))
-const SearchPage = lazy(() => import('./pages/SearchPage'))
+const ChatPage       = lazy(() => import('./pages/ChatPage'))
+const UploadPage     = lazy(() => import('./pages/UploadPage'))
+const SearchPage     = lazy(() => import('./pages/SearchPage'))
+const MonitoringPage = lazy(() => import('./pages/MonitoringPage'))
 
-type Page = 'chat' | 'upload' | 'search'
+type Page = 'chat' | 'upload' | 'search' | 'monitoring'
 
-// Loading spinner shown while lazy page loads
 const PageLoader = () => (
   <div style={{
     flex: 1, display: 'flex', alignItems: 'center',
@@ -49,15 +47,15 @@ function App() {
   if (!user) return <LoginPage />
 
   const navItems: { id: Page; label: string; icon: string }[] = [
-    { id: 'chat',   label: 'Chat',        icon: '💬' },
-    { id: 'upload', label: 'Upload Docs', icon: '📄' },
-    { id: 'search', label: 'Search',      icon: '🔍' },
+    { id: 'chat',       label: 'Chat',        icon: '💬' },
+    { id: 'upload',     label: 'Upload Docs', icon: '📄' },
+    { id: 'search',     label: 'Search',      icon: '🔍' },
+    { id: 'monitoring', label: 'Monitor',     icon: '📊' },
   ]
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
 
-      {/* Navigation */}
       <nav style={{
         background: '#13131f',
         borderBottom: '1px solid #2a2a3d',
@@ -92,11 +90,11 @@ function App() {
         </div>
       </nav>
 
-      {/* Suspense wraps lazy loaded pages */}
       <Suspense fallback={<PageLoader />}>
-        {currentPage === 'chat'   && <ChatPage />}
-        {currentPage === 'upload' && <UploadPage />}
-        {currentPage === 'search' && <SearchPage />}
+        {currentPage === 'chat'       && <ChatPage />}
+        {currentPage === 'upload'     && <UploadPage />}
+        {currentPage === 'search'     && <SearchPage />}
+        {currentPage === 'monitoring' && <MonitoringPage />}
       </Suspense>
 
     </div>

@@ -4,7 +4,11 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
+const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const logger = require('./config/logger');
+const metricsMiddleware = require('./middleware/metricsMiddleware');
+const { getMetrics } = require('./config/metrics');
 const authRoutes = require('./routes/authRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const documentRoutes = require('./routes/documentRoutes');
@@ -15,15 +19,14 @@ require('./workers/documentWorker');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security headers
+// Security
 app.use(helmet());
 
-// Compress all responses — makes transfers faster
+// Compression
 app.use(compression({
-  level: 6,           // Compression level (1-9, 6 is good balance)
-  threshold: 1024,    // Only compress responses > 1KB
+  level: 6,
+  threshold: 1024,
   filter: (req, res) => {
-    // Don't compress SSE streams
     if (req.headers.accept === 'text/event-stream') return false;
     return compression.filter(req, res);
   }
@@ -38,13 +41,20 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 
+// HTTP request logging
+app.use(morgan('combined', {
+  stream: { write: (message) => logger.info(message.trim()) }
+}));
+
+// Metrics tracking
+app.use(metricsMiddleware);
+
 // Rate limiters
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   message: { error: 'Too many requests. Please try again later.' },
-  // Skip rate limiting for health checks
-  skip: (req) => req.path === '/health'
+  skip: (req) => req.path === '/health' || req.path === '/metrics'
 });
 
 const authLimiter = rateLimit({
@@ -61,11 +71,10 @@ const chatLimiter = rateLimit({
 
 app.use(globalLimiter);
 
-// Health check with performance metrics
+// Health check
 app.get('/health', (req, res) => {
   const { getStatus } = require('./services/circuitBreakerService');
   const used = process.memoryUsage();
-
   res.json({
     status: 'OK',
     message: 'Server is running!',
@@ -83,10 +92,22 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Metrics endpoint
+app.get('/metrics', (req, res) => {
+  res.json(getMetrics());
+});
+
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/chat', chatLimiter, chatRoutes);
 app.use('/api/documents', documentRoutes);
 
+// Global error handler
+app.use((err, req, res, next) => {
+  logger.error(`Unhandled error: ${err.message}`, { stack: err.stack });
+  res.status(500).json({ error: 'Internal server error' });
+});
+
 app.listen(PORT, () => {
+  logger.info(`Backend running at http://localhost:${PORT}`);
   console.log(`Backend running at http://localhost:${PORT}`);
 });

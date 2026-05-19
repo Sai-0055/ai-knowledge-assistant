@@ -1,0 +1,182 @@
+.sysdesign-page {
+  flex: 1;
+  background: #0a0a14;
+  padding: 32px 24px;
+  overflow-y: auto;
+}
+
+.sysdesign-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.sysdesign-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.sysdesign-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #e2e2f0;
+  margin-bottom: 8px;
+}
+
+.sysdesign-subtitle {
+  color: #555577;
+  font-size: 14px;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #9999cc;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 14px;
+  margin-top: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #2a2a3d;
+}
+
+/* Architecture layers */
+.layers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.layer-card {
+  background: #13131f;
+  border: 1px solid #2a2a3d;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.layer-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.layer-item {
+  margin-bottom: 8px;
+}
+
+.layer-item-name {
+  font-size: 13px;
+  color: #e2e2f0;
+  font-weight: 500;
+  border-left: 2px solid;
+  padding-left: 8px;
+  margin-bottom: 2px;
+}
+
+.layer-item-desc {
+  font-size: 12px;
+  color: #555577;
+  padding-left: 10px;
+}
+
+/* Request flow */
+.flow-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 28px;
+}
+
+.flow-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #13131f;
+  border: 1px solid #2a2a3d;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.flow-step {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.flow-text {
+  font-size: 13px;
+  color: #9999cc;
+}
+
+/* Scaling strategies */
+.scaling-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.scaling-card {
+  background: #13131f;
+  border: 1px solid #2a2a3d;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.scaling-icon { font-size: 24px; margin-bottom: 8px; }
+
+.scaling-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e2f0;
+  margin-bottom: 8px;
+}
+
+.scaling-desc {
+  font-size: 13px;
+  color: #555577;
+  line-height: 1.6;
+}
+
+/* Tech table */
+.tech-table {
+  background: #13131f;
+  border: 1px solid #2a2a3d;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+
+.tech-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid #1a1a2e;
+  gap: 16px;
+}
+
+.tech-row:last-child { border-bottom: none; }
+
+.tech-category {
+  font-size: 12px;
+  color: #555577;
+  width: 120px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tech-value {
+  font-size: 13px;
+  color: #e2e2f0;
+}
