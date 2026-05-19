@@ -3,12 +3,13 @@ import { useAuth } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
 import HealthIndicator from './components/HealthIndicator'
 
-const ChatPage       = lazy(() => import('./pages/ChatPage'))
-const UploadPage     = lazy(() => import('./pages/UploadPage'))
-const SearchPage     = lazy(() => import('./pages/SearchPage'))
-const MonitoringPage = lazy(() => import('./pages/MonitoringPage'))
+const ChatPage         = lazy(() => import('./pages/ChatPage'))
+const UploadPage       = lazy(() => import('./pages/UploadPage'))
+const SearchPage       = lazy(() => import('./pages/SearchPage'))
+const MonitoringPage   = lazy(() => import('./pages/MonitoringPage'))
+const SystemDesignPage = lazy(() => import('./pages/SystemDesignPage'))
 
-type Page = 'chat' | 'upload' | 'search' | 'monitoring'
+type Page = 'chat' | 'upload' | 'search' | 'monitoring' | 'system'
 
 const PageLoader = () => (
   <div style={{
@@ -51,6 +52,7 @@ function App() {
     { id: 'upload',     label: 'Upload Docs', icon: '📄' },
     { id: 'search',     label: 'Search',      icon: '🔍' },
     { id: 'monitoring', label: 'Monitor',     icon: '📊' },
+    { id: 'system',     label: 'System',      icon: '🏗️' },
   ]
 
   return (
@@ -62,14 +64,15 @@ function App() {
         padding: '8px 24px',
         display: 'flex',
         gap: '6px',
-        alignItems: 'center'
+        alignItems: 'center',
+        flexWrap: 'wrap'
       }}>
         {navItems.map(item => (
           <button
             key={item.id}
             onClick={() => setCurrentPage(item.id)}
             style={{
-              padding: '6px 16px',
+              padding: '6px 14px',
               borderRadius: '20px',
               border: 'none',
               cursor: 'pointer',
@@ -95,6 +98,7 @@ function App() {
         {currentPage === 'upload'     && <UploadPage />}
         {currentPage === 'search'     && <SearchPage />}
         {currentPage === 'monitoring' && <MonitoringPage />}
+        {currentPage === 'system'     && <SystemDesignPage />}
       </Suspense>
 
     </div>
